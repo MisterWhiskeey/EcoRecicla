@@ -1,29 +1,24 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "builds": [
-    {
-      "src": "server/index.ts",
-      "use": "@vercel/node"
+  "outputDirectory": "dist/public",
+  "functions": {
+    "api/server.js": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server/index.ts"
+      "dest": "/api/server.js"
     },
     {
       "src": "/ws/(.*)",
-      "dest": "/server/index.ts"
+      "dest": "/api/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/server/index.ts"
+      "dest": "/$1"
     }
-  ],
-  "functions": {
-    "server/index.ts": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
