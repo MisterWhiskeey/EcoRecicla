@@ -50,6 +50,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { totalKg, points, streakDays } = req.body;
       
+      if (totalKg !== undefined && (typeof totalKg !== "number" || totalKg < 0)) {
+        return res.status(400).json({ error: "Invalid totalKg value" });
+      }
+      if (points !== undefined && (typeof points !== "number" || points < 0)) {
+        return res.status(400).json({ error: "Invalid points value" });
+      }
+      if (streakDays !== undefined && (typeof streakDays !== "number" || streakDays < 0)) {
+        return res.status(400).json({ error: "Invalid streakDays value" });
+      }
+      
       let stats = await storage.getUserStats(demoUserId);
       
       if (!stats) {
@@ -96,7 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  const wss = new WebSocketServer({ server: httpServer });
+  const wss = new WebSocketServer({ 
+    server: httpServer,
+    path: "/ws/containers"
+  });
 
   wss.on("connection", (ws) => {
     console.log("WebSocket client connected");

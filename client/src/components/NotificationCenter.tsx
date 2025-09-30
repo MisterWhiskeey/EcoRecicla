@@ -9,28 +9,27 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-
-interface Notification {
-  id: string;
-  containerId: string;
-  containerName: string;
-  message: string;
-  read: boolean;
-  createdAt: Date;
-}
+import type { Notification, Container } from "@shared/schema";
 
 interface NotificationCenterProps {
   notifications: Notification[];
+  containers: Container[];
   onNotificationClick: (notification: Notification) => void;
   onMarkAsRead: (id: string) => void;
 }
 
 export default function NotificationCenter({
   notifications,
+  containers,
   onNotificationClick,
   onMarkAsRead,
 }: NotificationCenterProps) {
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => n.read === 0).length;
+  
+  const getContainerName = (containerId: string) => {
+    const container = containers.find(c => c.id === containerId);
+    return container?.name || "Contenedor desconocido";
+  };
 
   const formatTime = (date: Date) => {
     const now = new Date();
@@ -79,7 +78,7 @@ export default function NotificationCenter({
                 key={notification.id}
                 data-testid={`notification-${notification.id}`}
                 className={`p-4 hover-elevate cursor-pointer ${
-                  !notification.read ? 'border-l-4 border-l-primary' : ''
+                  notification.read === 0 ? 'border-l-4 border-l-primary' : ''
                 }`}
                 onClick={() => {
                   onNotificationClick(notification);
@@ -92,9 +91,9 @@ export default function NotificationCenter({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-medium text-sm">{notification.containerName}</p>
+                      <p className="font-medium text-sm">{getContainerName(notification.containerId)}</p>
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {formatTime(notification.createdAt)}
+                        {formatTime(new Date(notification.createdAt))}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">

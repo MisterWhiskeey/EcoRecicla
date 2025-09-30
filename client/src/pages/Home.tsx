@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import ContainerMap from "@/components/ContainerMap";
 import ContainerDetails from "@/components/ContainerDetails";
 import UserProfile from "@/components/UserProfile";
@@ -6,111 +8,59 @@ import NotificationCenter from "@/components/NotificationCenter";
 import BottomNavigation from "@/components/BottomNavigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Recycle } from "lucide-react";
-
-interface Container {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  fillLevel: number;
-  materials: string[];
-  address: string;
-}
-
-interface Notification {
-  id: string;
-  containerId: string;
-  containerName: string;
-  message: string;
-  read: boolean;
-  createdAt: Date;
-}
+import { useWebSocket } from "@/hooks/useWebSocket";
+import type { Container, Notification, UserStats } from "@shared/schema";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<"map" | "details" | "profile">("map");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
 
-  const mockContainers: Container[] = [
-    {
-      id: "1",
-      name: "Parque Central",
-      latitude: -34.603722,
-      longitude: -58.381592,
-      fillLevel: 25,
-      materials: ["Plástico", "Vidrio", "Papel"],
-      address: "Av. Libertador 1234, Buenos Aires"
-    },
-    {
-      id: "2",
-      name: "Plaza Italia",
-      latitude: -34.583,
-      longitude: -58.420,
-      fillLevel: 65,
-      materials: ["Plástico", "Latas"],
-      address: "Av. Santa Fe 4567, Buenos Aires"
-    },
-    {
-      id: "3",
-      name: "Estación Norte",
-      latitude: -34.588,
-      longitude: -58.373,
-      fillLevel: 90,
-      materials: ["Papel", "Cartón"],
-      address: "Av. Cabildo 890, Buenos Aires"
-    },
-    {
-      id: "4",
-      name: "Centro Comercial",
-      latitude: -34.605,
-      longitude: -58.395,
-      fillLevel: 15,
-      materials: ["Plástico", "Vidrio", "Latas", "Papel"],
-      address: "Calle Florida 2345, Buenos Aires"
-    },
-    {
-      id: "5",
-      name: "Mercado Sur",
-      latitude: -34.615,
-      longitude: -58.385,
-      fillLevel: 55,
-      materials: ["Orgánico", "Plástico"],
-      address: "Av. Belgrano 6789, Buenos Aires"
-    },
-    {
-      id: "6",
-      name: "Universidad Central",
-      latitude: -34.598,
-      longitude: -58.388,
-      fillLevel: 40,
-      materials: ["Papel", "Cartón", "Plástico"],
-      address: "Av. Corrientes 3456, Buenos Aires"
-    },
-  ];
+  const { data: containers = [], isLoading: containersLoading } = useQuery<Container[]>({
+    queryKey: ["/api/containers"],
+  });
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      containerId: "3",
-      containerName: "Estación Norte",
-      message: "El contenedor está lleno (90%). Te recomendamos buscar una alternativa cercana.",
-      read: false,
-      createdAt: new Date(Date.now() - 300000)
-    },
-    {
-      id: "2",
-      containerId: "2",
-      containerName: "Plaza Italia",
-      message: "Contenedor medio lleno (65%). Aún puedes depositar aquí.",
-      read: false,
-      createdAt: new Date(Date.now() - 3600000)
-    },
-  ]);
+  useWebSocket<Container[]>("/ws/containers", (updatedContainers) => {
+    queryClient.setQueryData(["/api/containers"], updatedContainers);
+    
+    if (selectedContainer) {
+      const updatedSelected = updatedContainers.find(c => c.id === selectedContainer.id);
+      if (updatedSelected) {
+        setSelectedContainer(updatedSelected);
+      }
+    }
+  });
 
-  const mockStats = {
-    totalKg: 45.5,
-    points: 650,
-    streakDays: 12
-  };
+  const { data: stats, isLoading: statsLoading } = useQuery<UserStats>({
+    queryKey: ["/api/stats"],
+  });
+
+  const { data: notifications = [], isLoading: notificationsLoading } = useQuery<Notification[]>({
+    queryKey: ["/api/notifications"],
+  });
+
+  const markAsReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("PATCH", `/api/notifications/${id}/read`);
+    },
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/notifications"] });
+      const previousNotifications = queryClient.getQueryData<Notification[]>(["/api/notifications"]);
+      
+      queryClient.setQueryData<Notification[]>(["/api/notifications"], (old) => 
+        old?.map(n => n.id === id ? { ...n, read: 1 } : n) ?? []
+      );
+      
+      return { previousNotifications };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["/api/notifications"], context.previousNotifications);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
 
   const handleContainerSelect = (container: Container) => {
     setSelectedContainer(container);
@@ -118,7 +68,7 @@ export default function Home() {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    const container = mockContainers.find(c => c.id === notification.containerId);
+    const container = containers.find(c => c.id === notification.containerId);
     if (container) {
       setSelectedContainer(container);
       setActiveView("details");
@@ -126,15 +76,24 @@ export default function Home() {
   };
 
   const handleMarkAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+    markAsReadMutation.mutate(id);
   };
 
   const handleBackToMap = () => {
     setActiveView("map");
     setSelectedContainer(null);
   };
+
+  if (containersLoading || statsLoading || notificationsLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Recycle className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col">
@@ -152,6 +111,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <NotificationCenter
               notifications={notifications}
+              containers={containers}
               onNotificationClick={handleNotificationClick}
               onMarkAsRead={handleMarkAsRead}
             />
@@ -163,7 +123,7 @@ export default function Home() {
       <main className="flex-1 overflow-hidden">
         {activeView === "map" && (
           <ContainerMap
-            containers={mockContainers}
+            containers={containers}
             onContainerSelect={handleContainerSelect}
             userLocation={{ lat: -34.603722, lng: -58.381592 }}
           />
@@ -176,8 +136,8 @@ export default function Home() {
           />
         )}
 
-        {activeView === "profile" && (
-          <UserProfile stats={mockStats} />
+        {activeView === "profile" && stats && (
+          <UserProfile stats={stats} />
         )}
       </main>
 
@@ -185,8 +145,8 @@ export default function Home() {
         activeView={activeView}
         onViewChange={(view) => {
           setActiveView(view);
-          if (view === "details" && !selectedContainer && mockContainers.length > 0) {
-            setSelectedContainer(mockContainers[0]);
+          if (view === "details" && !selectedContainer && containers.length > 0) {
+            setSelectedContainer(containers[0]);
           }
         }}
       />
