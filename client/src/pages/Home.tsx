@@ -10,7 +10,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { Recycle } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { sortContainersByDistance } from "@/lib/geo-utils";
-import type { Container, Notification, UserStats } from "@shared/schema";
+import type { Container, Notification, UserStats } from "../../../server/simple-storage";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<"map" | "details" | "profile">("map");

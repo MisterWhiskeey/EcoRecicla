@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer } from "ws";
-import { storage } from "./storage";
+import { storage } from "./simple-storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const demoUserId = "demo-user";
