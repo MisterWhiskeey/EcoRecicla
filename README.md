@@ -3,6 +3,7 @@
 Una aplicación web moderna para la gestión inteligente de reciclaje.
 
 > ✨ **Versión simplificada** - Sin base de datos externa, datos en memoria para fácil despliegue.
+> 🚀 **Desplegado en Vercel** - Aplicación en línea funcionando correctamente.
 
 ## Características
 
