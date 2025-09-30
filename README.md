@@ -2,6 +2,8 @@
 
 Una aplicación web moderna para la gestión inteligente de reciclaje.
 
+> ✨ **Versión simplificada** - Sin base de datos externa, datos en memoria para fácil despliegue.
+
 ## Características
 
 - 🗺️ Mapa interactivo de contenedores de reciclaje
