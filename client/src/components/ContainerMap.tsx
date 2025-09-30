@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MapPin, Navigation, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { sortContainersByDistance, formatDistance } from "@/lib/geo-utils";
 
 interface Container {
   id: string;
@@ -13,6 +14,7 @@ interface Container {
   fillLevel: number;
   materials: string[];
   address: string;
+  distance?: number;
 }
 
 interface ContainerMapProps {
@@ -24,6 +26,14 @@ interface ContainerMapProps {
 export default function ContainerMap({ containers, onContainerSelect, userLocation }: ContainerMapProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
+
+  // Ordenar contenedores por distancia si hay ubicación del usuario
+  const sortedContainers = useMemo(() => {
+    if (userLocation) {
+      return sortContainersByDistance(containers, userLocation);
+    }
+    return containers.map(container => ({ ...container, distance: undefined }));
+  }, [containers, userLocation]);
 
   const getFillLevelColor = (level: number) => {
     if (level < 40) return "bg-container-empty";
@@ -42,7 +52,7 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
     onContainerSelect(container);
   };
 
-  const filteredContainers = containers.filter(c =>
+  const filteredContainers = sortedContainers.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -69,6 +79,11 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             <Navigation className="h-4 w-4" />
           </Button>
         </div>
+        {userLocation && (
+          <div className="bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-sm text-muted-foreground">
+            📍 Ordenados por distancia (del más cercano al más lejano)
+          </div>
+        )}
 
         {selectedContainer && (
           <Card className="p-4 space-y-3">
@@ -76,6 +91,11 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
               <div>
                 <h3 className="font-semibold">{selectedContainer.name}</h3>
                 <p className="text-sm text-muted-foreground">{selectedContainer.address}</p>
+                {selectedContainer.distance !== undefined && (
+                  <p className="text-sm font-medium text-blue-600 mt-1">
+                    📍 {formatDistance(selectedContainer.distance)}
+                  </p>
+                )}
               </div>
               <Badge
                 className={`${getFillLevelColor(selectedContainer.fillLevel)} text-white`}
@@ -123,7 +143,14 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
                     <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full ${getFillLevelColor(container.fillLevel)}`} />
                   </div>
                   <span className="text-xs font-medium text-center">{container.name}</span>
-                  <span className="text-xs text-muted-foreground">{container.fillLevel}%</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xs text-muted-foreground">{container.fillLevel}%</span>
+                    {container.distance !== undefined && (
+                      <span className="text-xs font-medium text-blue-600">
+                        {formatDistance(container.distance)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </button>
             ))}

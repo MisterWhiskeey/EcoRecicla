@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Volume2, VolumeX, Package, AlertCircle } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, MapPin, AlertCircle, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { formatDistance } from "@/lib/geo-utils";
 
 interface Container {
   id: string;
@@ -19,6 +20,7 @@ interface Container {
   fillLevel: number;
   materials: string[];
   address: string;
+  distance?: number;
 }
 
 interface MaterialInstruction {
@@ -115,6 +117,11 @@ export default function ContainerDetails({ container, onBack }: ContainerDetails
           <div className="flex-1">
             <h2 className="text-xl font-semibold">{container.name}</h2>
             <p className="text-sm text-muted-foreground">{container.address}</p>
+            {container.distance !== undefined && (
+              <p className="text-sm font-medium text-blue-600 mt-1">
+                📍 A {formatDistance(container.distance)} de distancia
+              </p>
+            )}
           </div>
           <Button
             data-testid="button-audio-toggle"

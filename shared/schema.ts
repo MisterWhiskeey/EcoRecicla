@@ -57,6 +57,7 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Container = typeof containers.$inferSelect;
+export type ContainerWithDistance = Container & { distance?: number };
 export type InsertContainer = z.infer<typeof insertContainerSchema>;
 export type UserStats = typeof userStats.$inferSelect;
 export type InsertUserStats = z.infer<typeof insertUserStatsSchema>;

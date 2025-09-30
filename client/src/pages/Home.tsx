@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import ContainerMap from "@/components/ContainerMap";
@@ -9,21 +9,31 @@ import BottomNavigation from "@/components/BottomNavigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Recycle } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { sortContainersByDistance } from "@/lib/geo-utils";
 import type { Container, Notification, UserStats } from "@shared/schema";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<"map" | "details" | "profile">("map");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
 
+  // Ubicación fija del usuario (en Buenos Aires)
+  const userLocation = { lat: -34.603722, lng: -58.381592 };
+
   const { data: containers = [], isLoading: containersLoading } = useQuery<Container[]>({
     queryKey: ["/api/containers"],
   });
+
+  // Calcular distancias y ordenar contenedores del más cercano al más lejano
+  const containersWithDistance = useMemo(() => {
+    return sortContainersByDistance(containers, userLocation);
+  }, [containers, userLocation]);
 
   useWebSocket<Container[]>("/ws/containers", (updatedContainers) => {
     queryClient.setQueryData(["/api/containers"], updatedContainers);
     
     if (selectedContainer) {
-      const updatedSelected = updatedContainers.find(c => c.id === selectedContainer.id);
+      const updatedSelected = sortContainersByDistance(updatedContainers, userLocation)
+        .find(c => c.id === selectedContainer.id);
       if (updatedSelected) {
         setSelectedContainer(updatedSelected);
       }
@@ -68,7 +78,7 @@ export default function Home() {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    const container = containers.find(c => c.id === notification.containerId);
+    const container = containersWithDistance.find(c => c.id === notification.containerId);
     if (container) {
       setSelectedContainer(container);
       setActiveView("details");
@@ -111,7 +121,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <NotificationCenter
               notifications={notifications}
-              containers={containers}
+              containers={containersWithDistance}
               onNotificationClick={handleNotificationClick}
               onMarkAsRead={handleMarkAsRead}
             />
@@ -123,9 +133,9 @@ export default function Home() {
       <main className="flex-1 overflow-hidden">
         {activeView === "map" && (
           <ContainerMap
-            containers={containers}
+            containers={containersWithDistance}
             onContainerSelect={handleContainerSelect}
-            userLocation={{ lat: -34.603722, lng: -58.381592 }}
+            userLocation={userLocation}
           />
         )}
 

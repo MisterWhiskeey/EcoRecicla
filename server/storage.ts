@@ -84,52 +84,68 @@ export class MemStorage implements IStorage {
   private seedContainers() {
     const initialContainers: InsertContainer[] = [
       {
-        name: "Parque Central",
-        latitude: -34.603722,
-        longitude: -58.381592,
+        name: "Supermercado Esquina", // MUY CERCA - 0.2km
+        latitude: -34.601722,
+        longitude: -58.383592,
         fillLevel: 25,
         materials: ["Plástico", "Vidrio", "Papel"],
         address: "Av. Libertador 1234, Buenos Aires"
       },
       {
-        name: "Plaza Italia",
-        latitude: -34.583,
-        longitude: -58.420,
+        name: "Farmacia Central", // CERCA - 0.5km
+        latitude: -34.607722,
+        longitude: -58.379592,
         fillLevel: 65,
         materials: ["Plástico", "Latas"],
         address: "Av. Santa Fe 4567, Buenos Aires"
       },
       {
-        name: "Estación Norte",
-        latitude: -34.588,
-        longitude: -58.373,
-        fillLevel: 90,
+        name: "Plaza del Barrio", // MEDIO - 1.2km
+        latitude: -34.593722,
+        longitude: -58.391592,
+        fillLevel: 40,
         materials: ["Papel", "Cartón"],
         address: "Av. Cabildo 890, Buenos Aires"
       },
       {
-        name: "Centro Comercial",
-        latitude: -34.605,
-        longitude: -58.395,
+        name: "Centro Comercial", // LEJOS - 2.1km
+        latitude: -34.585722,
+        longitude: -58.401592,
         fillLevel: 15,
         materials: ["Plástico", "Vidrio", "Latas", "Papel"],
         address: "Calle Florida 2345, Buenos Aires"
       },
       {
-        name: "Mercado Sur",
-        latitude: -34.615,
-        longitude: -58.385,
-        fillLevel: 55,
+        name: "Estación de Servicio", // MUY LEJOS - 3.5km
+        latitude: -34.635722,
+        longitude: -58.351592,
+        fillLevel: 90,
         materials: ["Orgánico", "Plástico"],
         address: "Av. Belgrano 6789, Buenos Aires"
       },
       {
-        name: "Universidad Central",
-        latitude: -34.598,
-        longitude: -58.388,
+        name: "Universidad Central", // MEDIO-CERCA - 0.8km
+        latitude: -34.611722,
+        longitude: -58.375592,
         fillLevel: 40,
         materials: ["Papel", "Cartón", "Plástico"],
         address: "Av. Corrientes 3456, Buenos Aires"
+      },
+      {
+        name: "Hospital San Juan", // CERCA - 0.4km
+        latitude: -34.600722,
+        longitude: -58.385592,
+        fillLevel: 75,
+        materials: ["Vidrio", "Plástico"],
+        address: "Av. Rivadavia 5678, Buenos Aires"
+      },
+      {
+        name: "Parque Ecológico", // LEJOS - 4.2km
+        latitude: -34.570722,
+        longitude: -58.420592,
+        fillLevel: 10,
+        materials: ["Orgánico", "Papel", "Cartón"],
+        address: "Av. Costanera Norte 9012, Buenos Aires"
       }
     ];
 
