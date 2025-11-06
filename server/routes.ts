@@ -50,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
 
   // Configurar WebSocket para actualizaciones en tiempo real
-  const wss = new WebSocketServer({ server });
+  const wss = new WebSocketServer({ server, path: "/ws/containers" });
 
   wss.on("connection", (ws) => {
     console.log("WebSocket client connected");
