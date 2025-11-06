@@ -1,10 +1,16 @@
 import { useState, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { MapPin, Navigation, Search } from "lucide-react";
+import { MapPin, Navigation, Search, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { sortContainersByDistance, formatDistance } from "@/lib/geo-utils";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -139,11 +145,40 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             <Navigation className="h-4 w-4" />
           </Button>
         </div>
-        {userLocation && (
-          <div className="bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-sm text-muted-foreground">
-            📍 Haz clic en los marcadores para ver información del contenedor
-          </div>
-        )}
+        
+        <Card className="bg-card/95 backdrop-blur-sm p-3">
+          <Accordion type="single" collapsible>
+            <AccordionItem value="legend" className="border-none">
+              <AccordionTrigger className="hover:no-underline py-1">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  <span className="text-sm font-medium">Leyenda de colores</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-1">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-container-empty" />
+                    <span className="text-xs">Verde - Mucho espacio (menos de 40%)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-container-medium" />
+                    <span className="text-xs">Naranja - Nivel medio (40% - 79%)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-container-full" />
+                    <span className="text-xs">Rojo - Casi lleno (80% o más)</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+          {userLocation && (
+            <p className="text-xs text-muted-foreground mt-2">
+              📍 Haz clic en los marcadores para ver información
+            </p>
+          )}
+        </Card>
 
         {selectedContainer && (
           <Card className="p-4 space-y-3">
