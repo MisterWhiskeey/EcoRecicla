@@ -146,38 +146,25 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
           </Button>
         </div>
         
-        <Card className="bg-card/95 backdrop-blur-sm p-3">
-          <Accordion type="single" collapsible>
-            <AccordionItem value="legend" className="border-none">
-              <AccordionTrigger className="hover:no-underline py-1">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4" />
-                  <span className="text-sm font-medium">Leyenda de colores</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pb-1">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-container-empty" />
-                    <span className="text-xs">Verde - Mucho espacio (menos de 40%)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-container-medium" />
-                    <span className="text-xs">Naranja - Nivel medio (40% - 79%)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-container-full" />
-                    <span className="text-xs">Rojo - Casi lleno (80% o más)</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-          {userLocation && (
-            <p className="text-xs text-muted-foreground mt-2">
-              📍 Haz clic en los marcadores para ver información
-            </p>
-          )}
+        <Card className="bg-card/95 backdrop-blur-sm p-2 w-fit max-w-[200px]">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Info className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">Leyenda</span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-container-empty flex-shrink-0" />
+              <span className="text-[10px] leading-tight">Disponible</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-container-medium flex-shrink-0" />
+              <span className="text-[10px] leading-tight">Medio</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-container-full flex-shrink-0" />
+              <span className="text-[10px] leading-tight">Lleno</span>
+            </div>
+          </div>
         </Card>
 
         {selectedContainer && (

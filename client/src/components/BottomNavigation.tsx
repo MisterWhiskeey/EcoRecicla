@@ -15,7 +15,7 @@ export default function BottomNavigation({ activeView, onViewChange }: BottomNav
 
   return (
     <div className="border-t bg-card">
-      <div className="flex items-center justify-around p-2">
+      <div className="flex items-center justify-center gap-2 p-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeView === item.id;
@@ -24,14 +24,13 @@ export default function BottomNavigation({ activeView, onViewChange }: BottomNav
             <Button
               key={item.id}
               data-testid={`nav-${item.id}`}
-              variant="ghost"
+              variant={isActive ? "default" : "ghost"}
+              size="sm"
               onClick={() => onViewChange(item.id)}
-              className={`flex-1 flex flex-col items-center gap-1 h-auto py-2 ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}
+              className="px-3"
+              title={item.label}
             >
-              <Icon className={`h-5 w-5 ${isActive ? 'fill-primary/20' : ''}`} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className="h-4 w-4" />
             </Button>
           );
         })}
