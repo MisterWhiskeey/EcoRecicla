@@ -9,8 +9,7 @@ Una aplicación web moderna para la gestión inteligente de reciclaje.
 
 - 🗺️ Mapa interactivo de contenedores de reciclaje
 - 📍 Ordenamiento por distancia (más cercano a más lejano)
-- 🔔 Notificaciones en tiempo real
-- 📊 Estadísticas de reciclaje personal
+- 📊 Estadísticas de reciclaje personal (estáticas)
 - 🌙 Modo oscuro/claro
 - 📱 Diseño responsive
 
