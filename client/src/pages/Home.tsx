@@ -106,7 +106,7 @@ export default function Home() {
     <div className="h-screen flex flex-col">
       <header className="border-b bg-card p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
             <div className="p-2 bg-primary/10 rounded-md">
               <Recycle className="h-6 w-6 text-primary" />
             </div>
@@ -115,22 +115,22 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Gestión Inteligente de Reciclaje</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center flex-1 justify-center">
             <BottomNavigation
               activeView={activeView}
               onViewChange={(view) => {
                 setActiveView(view);
               }}
             />
-            <div className="flex items-center gap-2">
-              <NotificationCenter
-                notifications={notifications}
-                containers={containersWithDistance}
-                onNotificationClick={handleNotificationClick}
-                onMarkAsRead={handleMarkAsRead}
-              />
-              <ThemeToggle />
-            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-1 justify-end">
+            <NotificationCenter
+              notifications={notifications}
+              containers={containersWithDistance}
+              onNotificationClick={handleNotificationClick}
+              onMarkAsRead={handleMarkAsRead}
+            />
+            <ThemeToggle />
           </div>
         </div>
       </header>
