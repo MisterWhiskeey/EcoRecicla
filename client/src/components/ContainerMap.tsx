@@ -155,25 +155,25 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
         
         <Card className="bg-card/95 backdrop-blur-sm p-2 w-fit">
           <div className="flex items-center gap-1.5 mb-2">
-            <Info className="h-3.5 w-3.5" />
-            <span className="text-xs font-medium">Leyenda</span>
+            <Info className="h-4 w-4" />
+            <span className="text-sm font-medium">Leyenda</span>
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-container-empty flex-shrink-0" />
-              <span className="text-[10px] leading-tight">Disponible</span>
+              <div className="w-3 h-3 rounded-full bg-container-empty flex-shrink-0" />
+              <span className="text-xs leading-tight">Disponible</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-container-medium flex-shrink-0" />
-              <span className="text-[10px] leading-tight">Medio</span>
+              <div className="w-3 h-3 rounded-full bg-container-medium flex-shrink-0" />
+              <span className="text-xs leading-tight">Medio</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-container-full flex-shrink-0" />
-              <span className="text-[10px] leading-tight">Lleno</span>
+              <div className="w-3 h-3 rounded-full bg-container-full flex-shrink-0" />
+              <span className="text-xs leading-tight">Lleno</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 border border-white flex-shrink-0" />
-              <span className="text-[10px] leading-tight">Tu ubicación</span>
+              <div className="w-3 h-3 rounded-full bg-blue-500 border border-white flex-shrink-0" />
+              <span className="text-xs leading-tight">Tu ubicación</span>
             </div>
           </div>
         </Card>
