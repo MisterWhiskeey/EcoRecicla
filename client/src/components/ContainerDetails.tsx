@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ArrowLeft, Volume2, VolumeX, MapPin, AlertCircle, Package } from "lucide-react";
+import { ArrowLeft, AlertCircle, Package, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,8 +35,6 @@ interface ContainerDetailsProps {
 }
 
 export default function ContainerDetails({ container, onBack }: ContainerDetailsProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-
   const materialInstructions: MaterialInstruction[] = [
     {
       name: "Plástico",
@@ -85,11 +82,6 @@ export default function ContainerDetails({ container, onBack }: ContainerDetails
     }
   ];
 
-  const handleAudioToggle = () => {
-    setIsPlaying(!isPlaying);
-    console.log(isPlaying ? 'Audio stopped' : 'Audio playing instructions');
-  };
-
   const getFillLevelColor = (level: number) => {
     if (level < 40) return "text-container-empty";
     if (level < 80) return "text-container-medium";
@@ -123,18 +115,39 @@ export default function ContainerDetails({ container, onBack }: ContainerDetails
               </p>
             )}
           </div>
-          <Button
-            data-testid="button-audio-toggle"
-            size="icon"
-            variant={isPlaying ? "default" : "outline"}
-            onClick={handleAudioToggle}
-          >
-            {isPlaying ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto p-4 space-y-6">
+        <Card className="p-4">
+          <Accordion type="single" collapsible>
+            <AccordionItem value="legend" className="border-none">
+              <AccordionTrigger className="hover:no-underline py-2">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  <span className="text-sm font-medium">Leyenda de colores</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-container-empty" />
+                    <span className="text-sm">Verde - Mucho espacio disponible (menos de 40%)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-container-medium" />
+                    <span className="text-sm">Naranja - Nivel medio (40% - 79%)</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-container-full" />
+                    <span className="text-sm">Rojo - Casi lleno (80% o más)</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </Card>
+
         <Card className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">

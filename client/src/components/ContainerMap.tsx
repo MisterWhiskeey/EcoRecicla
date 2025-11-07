@@ -1,10 +1,19 @@
 import { useState, useMemo } from "react";
-import { MapPin, Navigation, Search } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapPin, Navigation, Search, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { sortContainersByDistance, formatDistance } from "@/lib/geo-utils";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 interface Container {
   id: string;
@@ -23,11 +32,54 @@ interface ContainerMapProps {
   userLocation?: { lat: number; lng: number };
 }
 
+const createCustomIcon = (fillLevel: number) => {
+  const color = fillLevel < 40 ? '#22c55e' : fillLevel < 80 ? '#f59e0b' : '#ef4444';
+  
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+      <div style="position: relative;">
+        <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 0C7.163 0 0 7.163 0 16c0 11.625 14.5 25.5 15.25 26.125a1 1 0 001.5 0C17.5 41.5 32 27.625 32 16 32 7.163 24.837 0 16 0z" fill="${color}"/>
+          <circle cx="16" cy="16" r="6" fill="white"/>
+        </svg>
+        <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: ${color}; font-weight: bold; font-size: 10px;">
+          ${fillLevel}%
+        </div>
+      </div>
+    `,
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -42]
+  });
+};
+
+const createUserIcon = () => {
+  return L.divIcon({
+    className: 'user-marker',
+    html: `
+      <div style="position: relative;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#3b82f6" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="white"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+  });
+};
+
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+  map.setView(center, 13);
+  return null;
+}
+
 export default function ContainerMap({ containers, onContainerSelect, userLocation }: ContainerMapProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
 
-  // Ordenar contenedores por distancia si hay ubicación del usuario
   const sortedContainers = useMemo(() => {
     if (userLocation) {
       return sortContainersByDistance(containers, userLocation);
@@ -49,7 +101,12 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
 
   const handleContainerClick = (container: Container) => {
     setSelectedContainer(container);
-    onContainerSelect(container);
+  };
+
+  const handleViewDetails = () => {
+    if (selectedContainer) {
+      onContainerSelect(selectedContainer);
+    }
   };
 
   const filteredContainers = sortedContainers.filter(c =>
@@ -57,9 +114,13 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
     c.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const mapCenter: [number, number] = userLocation 
+    ? [userLocation.lat, userLocation.lng]
+    : [-34.603722, -58.381592];
+
   return (
     <div className="relative h-full flex flex-col">
-      <div className="absolute top-4 left-4 right-4 z-10 space-y-4">
+      <div className="absolute top-4 left-4 right-4 z-[1000] space-y-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -75,15 +136,49 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             data-testid="button-find-nearest"
             size="icon"
             variant="default"
+            onClick={() => {
+              if (filteredContainers.length > 0) {
+                setSelectedContainer(filteredContainers[0]);
+              }
+            }}
           >
             <Navigation className="h-4 w-4" />
           </Button>
         </div>
-        {userLocation && (
-          <div className="bg-card/95 backdrop-blur-sm rounded-md px-3 py-2 text-sm text-muted-foreground">
-            📍 Ordenados por distancia (del más cercano al más lejano)
-          </div>
-        )}
+        
+        <Card className="bg-card/95 backdrop-blur-sm p-3">
+          <Accordion type="single" collapsible>
+            <AccordionItem value="legend" className="border-none">
+              <AccordionTrigger className="hover:no-underline py-1">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  <span className="text-sm font-medium">Leyenda de colores</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-1">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-container-empty" />
+                    <span className="text-xs">Verde - Mucho espacio (menos de 40%)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-container-medium" />
+                    <span className="text-xs">Naranja - Nivel medio (40% - 79%)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-container-full" />
+                    <span className="text-xs">Rojo - Casi lleno (80% o más)</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+          {userLocation && (
+            <p className="text-xs text-muted-foreground mt-2">
+              📍 Haz clic en los marcadores para ver información
+            </p>
+          )}
+        </Card>
 
         {selectedContainer && (
           <Card className="p-4 space-y-3">
@@ -113,7 +208,7 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             </div>
             <Button
               data-testid="button-view-details"
-              onClick={() => onContainerSelect(selectedContainer)}
+              onClick={handleViewDetails}
               className="w-full"
             >
               Ver detalles
@@ -122,40 +217,68 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
         )}
       </div>
 
-      <div className="flex-1 bg-muted relative">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-8 max-w-4xl w-full max-h-full overflow-auto">
-            {filteredContainers.map((container) => (
-              <button
-                key={container.id}
-                data-testid={`button-container-${container.id}`}
-                onClick={() => handleContainerClick(container)}
-                className={`p-4 rounded-md hover-elevate active-elevate-2 transition-all ${
-                  selectedContainer?.id === container.id ? 'bg-accent' : 'bg-card'
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="relative">
-                    <MapPin className={`h-8 w-8 ${
-                      container.fillLevel < 40 ? 'text-container-empty' :
-                      container.fillLevel < 80 ? 'text-container-medium' : 'text-container-full'
-                    }`} />
-                    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full ${getFillLevelColor(container.fillLevel)}`} />
+      <div className="flex-1 relative">
+        <MapContainer
+          center={mapCenter}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          
+          {userLocation && (
+            <Marker 
+              position={[userLocation.lat, userLocation.lng]}
+              icon={createUserIcon()}
+            >
+              <Popup>
+                <div className="text-center">
+                  <strong>Tu ubicación</strong>
+                </div>
+              </Popup>
+            </Marker>
+          )}
+
+          {filteredContainers.map((container) => (
+            <Marker
+              key={container.id}
+              position={[container.latitude, container.longitude]}
+              icon={createCustomIcon(container.fillLevel)}
+              eventHandlers={{
+                click: () => handleContainerClick(container)
+              }}
+            >
+              <Popup>
+                <div className="min-w-[200px]">
+                  <h3 className="font-semibold mb-1">{container.name}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{container.address}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className={`${getFillLevelColor(container.fillLevel)} text-white`}>
+                      {getFillLevelText(container.fillLevel)} ({container.fillLevel}%)
+                    </Badge>
                   </div>
-                  <span className="text-xs font-medium text-center">{container.name}</span>
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs text-muted-foreground">{container.fillLevel}%</span>
-                    {container.distance !== undefined && (
-                      <span className="text-xs font-medium text-blue-600">
-                        {formatDistance(container.distance)}
-                      </span>
-                    )}
+                  {container.distance !== undefined && (
+                    <p className="text-sm font-medium text-blue-600 mb-2">
+                      📍 {formatDistance(container.distance)}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-1">
+                    {container.materials.map((material) => (
+                      <Badge key={material} variant="outline" className="text-xs">
+                        {material}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
+              </Popup>
+            </Marker>
+          ))}
+
+          <MapUpdater center={mapCenter} />
+        </MapContainer>
       </div>
     </div>
   );
