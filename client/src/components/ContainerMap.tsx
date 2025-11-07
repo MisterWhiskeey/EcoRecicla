@@ -30,6 +30,8 @@ interface ContainerMapProps {
   containers: Container[];
   onContainerSelect: (container: Container) => void;
   userLocation?: { lat: number; lng: number };
+  selectedContainer?: Container | null;
+  onBackToMap?: () => void;
 }
 
 const createCustomIcon = (fillLevel: number) => {
@@ -76,9 +78,11 @@ function MapUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-export default function ContainerMap({ containers, onContainerSelect, userLocation }: ContainerMapProps) {
+export default function ContainerMap({ containers, onContainerSelect, userLocation, selectedContainer: externalSelectedContainer, onBackToMap }: ContainerMapProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
+  const [internalSelectedContainer, setInternalSelectedContainer] = useState<Container | null>(null);
+  
+  const selectedContainer = externalSelectedContainer ?? internalSelectedContainer;
 
   const sortedContainers = useMemo(() => {
     if (userLocation) {
@@ -100,12 +104,14 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
   };
 
   const handleContainerClick = (container: Container) => {
-    setSelectedContainer(container);
+    setInternalSelectedContainer(container);
+    onContainerSelect(container);
   };
 
-  const handleViewDetails = () => {
-    if (selectedContainer) {
-      onContainerSelect(selectedContainer);
+  const handleCloseDetails = () => {
+    setInternalSelectedContainer(null);
+    if (onBackToMap) {
+      onBackToMap();
     }
   };
 
@@ -120,16 +126,16 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
 
   return (
     <div className="relative h-full flex flex-col">
-      <div className="absolute top-4 left-4 right-4 z-[1000] space-y-4">
+      <div className="absolute top-4 left-4 z-[1000] space-y-4">
         <div className="flex gap-2">
-          <div className="relative flex-1">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               data-testid="input-search-container"
-              placeholder="Buscar contenedor o dirección..."
+              placeholder="Buscar contenedor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-card"
+              className="pl-9 bg-card w-[280px]"
             />
           </div>
           <Button
@@ -138,7 +144,8 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             variant="default"
             onClick={() => {
               if (filteredContainers.length > 0) {
-                setSelectedContainer(filteredContainers[0]);
+                setInternalSelectedContainer(filteredContainers[0]);
+                onContainerSelect(filteredContainers[0]);
               }
             }}
           >
@@ -146,7 +153,7 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
           </Button>
         </div>
         
-        <Card className="bg-card/95 backdrop-blur-sm p-2 w-fit max-w-[200px]">
+        <Card className="bg-card/95 backdrop-blur-sm p-2 w-fit">
           <div className="flex items-center gap-1.5 mb-2">
             <Info className="h-3.5 w-3.5" />
             <span className="text-xs font-medium">Leyenda</span>
@@ -166,11 +173,33 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             </div>
           </div>
         </Card>
+      </div>
 
-        {selectedContainer && (
-          <Card className="p-4 space-y-3">
+      <div className="absolute top-4 right-4 z-[1000]">
+        <Card className="bg-card/95 backdrop-blur-sm p-2 w-[180px]">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Info className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">Instrucciones</span>
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] leading-tight text-muted-foreground">
+              • Click en marcadores para info
+            </p>
+            <p className="text-[10px] leading-tight text-muted-foreground">
+              • Busca por nombre o dirección
+            </p>
+            <p className="text-[10px] leading-tight text-muted-foreground">
+              • Usa navegación para más cercano
+            </p>
+          </div>
+        </Card>
+      </div>
+
+      {selectedContainer && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-[400px]">
+          <Card className="p-4 space-y-3 bg-card/95 backdrop-blur-sm">
             <div className="flex items-start justify-between">
-              <div>
+              <div className="flex-1">
                 <h3 className="font-semibold">{selectedContainer.name}</h3>
                 <p className="text-sm text-muted-foreground">{selectedContainer.address}</p>
                 {selectedContainer.distance !== undefined && (
@@ -194,15 +223,17 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
               ))}
             </div>
             <Button
-              data-testid="button-view-details"
-              onClick={handleViewDetails}
+              data-testid="button-close-details"
+              onClick={handleCloseDetails}
+              variant="outline"
+              size="sm"
               className="w-full"
             >
-              Ver detalles
+              Cerrar
             </Button>
           </Card>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex-1 relative">
         <MapContainer

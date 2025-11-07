@@ -13,7 +13,7 @@ import { sortContainersByDistance } from "@/lib/geo-utils";
 import type { Container, Notification, UserStats } from "../../../server/simple-storage";
 
 export default function Home() {
-  const [activeView, setActiveView] = useState<"map" | "details" | "profile">("map");
+  const [activeView, setActiveView] = useState<"map" | "profile">("map");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
 
   // Ubicación fija del usuario (en Buenos Aires)
@@ -74,14 +74,12 @@ export default function Home() {
 
   const handleContainerSelect = (container: Container) => {
     setSelectedContainer(container);
-    setActiveView("details");
   };
 
   const handleNotificationClick = (notification: Notification) => {
     const container = containersWithDistance.find(c => c.id === notification.containerId);
     if (container) {
       setSelectedContainer(container);
-      setActiveView("details");
     }
   };
 
@@ -90,7 +88,6 @@ export default function Home() {
   };
 
   const handleBackToMap = () => {
-    setActiveView("map");
     setSelectedContainer(null);
   };
 
@@ -118,14 +115,22 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Gestión Inteligente de Reciclaje</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <NotificationCenter
-              notifications={notifications}
-              containers={containersWithDistance}
-              onNotificationClick={handleNotificationClick}
-              onMarkAsRead={handleMarkAsRead}
+          <div className="flex items-center gap-4">
+            <BottomNavigation
+              activeView={activeView}
+              onViewChange={(view) => {
+                setActiveView(view);
+              }}
             />
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <NotificationCenter
+                notifications={notifications}
+                containers={containersWithDistance}
+                onNotificationClick={handleNotificationClick}
+                onMarkAsRead={handleMarkAsRead}
+              />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
@@ -136,13 +141,8 @@ export default function Home() {
             containers={containersWithDistance}
             onContainerSelect={handleContainerSelect}
             userLocation={userLocation}
-          />
-        )}
-
-        {activeView === "details" && selectedContainer && (
-          <ContainerDetails
-            container={selectedContainer}
-            onBack={handleBackToMap}
+            selectedContainer={selectedContainer}
+            onBackToMap={handleBackToMap}
           />
         )}
 
@@ -150,16 +150,6 @@ export default function Home() {
           <UserProfile stats={stats} />
         )}
       </main>
-
-      <BottomNavigation
-        activeView={activeView}
-        onViewChange={(view) => {
-          setActiveView(view);
-          if (view === "details" && !selectedContainer && containers.length > 0) {
-            setSelectedContainer(containers[0]);
-          }
-        }}
-      />
     </div>
   );
 }
