@@ -82,13 +82,14 @@ export default function UserProfile({ stats }: UserProfileProps) {
   const progressToNextLevel = (stats.points / nextLevelPoints) * 100;
 
   return (
-    <div className="h-full overflow-auto p-4 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Mi Perfil</h2>
-        <p className="text-muted-foreground">Rastrea tu impacto ambiental</p>
-      </div>
+    <div className="h-full overflow-auto p-4 flex justify-center">
+      <div className="w-full max-w-3xl space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Mi Perfil</h2>
+          <p className="text-muted-foreground">Rastrea tu impacto ambiental</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/10 rounded-md">
@@ -186,6 +187,7 @@ export default function UserProfile({ stats }: UserProfileProps) {
             </button>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
