@@ -182,31 +182,31 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
       <div className="absolute top-4 right-4 z-[1000]">
         <Card className="bg-card/95 backdrop-blur-sm p-2 w-[200px]">
           <div className="flex items-center gap-1.5 mb-2">
-            <Info className="h-3.5 w-3.5" />
-            <span className="text-xs font-medium">Instrucciones de Reciclaje</span>
+            <Info className="h-4 w-4" />
+            <span className="text-sm font-medium">Instrucciones de Reciclaje</span>
           </div>
           <div className="space-y-1.5">
             <div>
-              <p className="text-[10px] font-medium">Papel y Cartón:</p>
-              <p className="text-[10px] leading-tight text-muted-foreground">
+              <p className="text-xs font-medium">Papel y Cartón:</p>
+              <p className="text-xs leading-tight text-muted-foreground">
                 Limpio y seco, sin grasas ni comida
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-medium">Plástico:</p>
-              <p className="text-[10px] leading-tight text-muted-foreground">
+              <p className="text-xs font-medium">Plástico:</p>
+              <p className="text-xs leading-tight text-muted-foreground">
                 Botellas vacías, enjuagadas
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-medium">Vidrio:</p>
-              <p className="text-[10px] leading-tight text-muted-foreground">
+              <p className="text-xs font-medium">Vidrio:</p>
+              <p className="text-xs leading-tight text-muted-foreground">
                 Sin tapas, limpio y completo
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-medium">Metal:</p>
-              <p className="text-[10px] leading-tight text-muted-foreground">
+              <p className="text-xs font-medium">Metal:</p>
+              <p className="text-xs leading-tight text-muted-foreground">
                 Latas limpias y aplastadas
               </p>
             </div>
