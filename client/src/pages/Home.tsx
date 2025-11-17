@@ -14,6 +14,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState<"map" | "profile">("map");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
   const [localStats, setLocalStats] = useState<UserStats | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
 
   // Ubicación fija del usuario (en Buenos Aires)
   const userLocation = { lat: -34.603722, lng: -58.381592 };
@@ -48,6 +49,10 @@ export default function Home() {
 
   const handleUpdateStats = (newStats: UserStats) => {
     setLocalStats(newStats);
+  };
+
+  const handleNotificationToggle = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
   };
 
   const handleContainerSelect = (container: Container) => {
@@ -103,6 +108,7 @@ export default function Home() {
             userLocation={userLocation}
             selectedContainer={selectedContainer}
             onBackToMap={handleBackToMap}
+            notificationsEnabled={notificationsEnabled}
           />
         )}
 
@@ -110,6 +116,8 @@ export default function Home() {
           <UserProfile 
             stats={currentStats} 
             onUpdateStats={handleUpdateStats}
+            notificationsEnabled={notificationsEnabled}
+            onNotificationToggle={handleNotificationToggle}
           />
         )}
       </main>

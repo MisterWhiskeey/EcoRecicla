@@ -1,10 +1,11 @@
-import { Leaf, Award, Calendar, TrendingUp, Plus } from "lucide-react";
+import { Leaf, Award, Calendar, TrendingUp, Plus, Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import {
   BarChart,
@@ -33,9 +34,11 @@ interface Achievement {
 interface UserProfileProps {
   stats: UserStats;
   onUpdateStats?: (newStats: UserStats) => void;
+  notificationsEnabled?: boolean;
+  onNotificationToggle?: (enabled: boolean) => void;
 }
 
-export default function UserProfile({ stats, onUpdateStats }: UserProfileProps) {
+export default function UserProfile({ stats, onUpdateStats, notificationsEnabled = true, onNotificationToggle }: UserProfileProps) {
   const [recyclingData, setRecyclingData] = useState({
     papel: '',
     carton: '',
@@ -203,6 +206,26 @@ export default function UserProfile({ stats, onUpdateStats }: UserProfileProps) 
               <Plus className="h-4 w-4 mr-2" />
               Registrar
             </Button>
+          </div>
+        </Card>
+
+        {/* Sección de configuración de notificaciones */}
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Notificaciones</h3>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium">Contenedores disponibles cerca</Label>
+              <p className="text-xs text-muted-foreground">
+                Recibe alertas cuando hay contenedores disponibles dentro de 500m
+              </p>
+            </div>
+            <Switch
+              checked={notificationsEnabled}
+              onCheckedChange={onNotificationToggle}
+            />
           </div>
         </Card>
 

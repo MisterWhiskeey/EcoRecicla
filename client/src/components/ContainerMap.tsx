@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
-import { MapPin, Info } from "lucide-react";
+import { MapPin, Info, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { sortContainersByDistance, formatDistance } from "@/lib/geo-utils";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -24,6 +25,7 @@ interface ContainerMapProps {
   userLocation?: { lat: number; lng: number };
   selectedContainer?: Container | null;
   onBackToMap?: () => void;
+  notificationsEnabled?: boolean;
 }
 
 const createCustomIcon = (fillLevel: number) => {
@@ -70,8 +72,9 @@ function MapUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
-export default function ContainerMap({ containers, onContainerSelect, userLocation, selectedContainer: externalSelectedContainer, onBackToMap }: ContainerMapProps) {
+export default function ContainerMap({ containers, onContainerSelect, userLocation, selectedContainer: externalSelectedContainer, onBackToMap, notificationsEnabled = true }: ContainerMapProps) {
   const [internalSelectedContainer, setInternalSelectedContainer] = useState<Container | null>(null);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState<boolean>(false);
   
   const selectedContainer = externalSelectedContainer ?? internalSelectedContainer;
 
@@ -81,6 +84,17 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
     }
     return containers.map(container => ({ ...container, distance: undefined }));
   }, [containers, userLocation]);
+
+  // Detectar contenedores disponibles cerca (top 3)
+  const nearbyAvailableContainers = useMemo(() => {
+    if (!userLocation) return [];
+    const available = sortedContainers.filter(container => 
+      container.fillLevel < 40 && // Disponible
+      container.distance !== undefined && 
+      container.distance <= 1000 // Dentro de 1000m
+    );
+    return available.slice(0, 3); // Solo los 3 más cercanos
+  }, [sortedContainers, userLocation]);
 
   const getFillLevelColor = (level: number) => {
     if (level < 40) return "bg-container-empty";
@@ -184,6 +198,55 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             </div>
           </div>
         </Card>
+
+        {/* Panel de notificaciones de contenedores cercanos */}
+        {notificationsEnabled && nearbyAvailableContainers.length > 0 && (
+          <Card className="bg-card/95 backdrop-blur-sm p-2 w-[200px] mt-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-2 h-auto"
+              onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+            >
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Bell className="h-4 w-4 text-primary" />
+                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center">
+                    {nearbyAvailableContainers.length}
+                  </span>
+                </div>
+                <span className="text-sm font-medium">Cercanos</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {notificationPanelOpen ? '▼' : '▶'}
+              </span>
+            </Button>
+
+            {notificationPanelOpen && (
+              <div className="mt-2 space-y-2 border-t pt-2">
+                {nearbyAvailableContainers.map((container) => (
+                  <button
+                    key={container.id}
+                    onClick={() => handleContainerClick(container)}
+                    className="w-full text-left p-2 rounded hover:bg-accent transition-colors"
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{container.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          📍 {formatDistance(container.distance || 0)}
+                        </p>
+                        <p className="text-xs text-green-600">
+                          {container.fillLevel}% lleno
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
       </div>
 
       <div className="flex-1 relative">
