@@ -1,7 +1,11 @@
-import { Leaf, Award, Calendar, TrendingUp } from "lucide-react";
+import { Leaf, Award, Calendar, TrendingUp, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -28,9 +32,75 @@ interface Achievement {
 
 interface UserProfileProps {
   stats: UserStats;
+  onUpdateStats?: (newStats: UserStats) => void;
 }
 
-export default function UserProfile({ stats }: UserProfileProps) {
+export default function UserProfile({ stats, onUpdateStats }: UserProfileProps) {
+  const [recyclingData, setRecyclingData] = useState({
+    papel: '',
+    carton: '',
+    plastico: '',
+    vidrio: '',
+    latas: '',
+    organico: ''
+  });
+
+  const materials = [
+    { key: 'papel', label: 'Papel', color: 'bg-blue-500' },
+    { key: 'carton', label: 'Cartón', color: 'bg-yellow-600' },
+    { key: 'plastico', label: 'Plástico', color: 'bg-green-500' },
+    { key: 'vidrio', label: 'Vidrio', color: 'bg-cyan-500' },
+    { key: 'latas', label: 'Latas', color: 'bg-gray-500' },
+    { key: 'organico', label: 'Orgánico', color: 'bg-lime-600' }
+  ];
+
+  const handleInputChange = (material: string, value: string) => {
+    // Permitir solo números con hasta 2 decimales
+    const regex = /^\d*\.?\d{0,2}$/;
+    if (regex.test(value) || value === '') {
+      setRecyclingData(prev => ({
+        ...prev,
+        [material]: value
+      }));
+    }
+  };
+
+  const handleSubmit = () => {
+    const totalKg = Object.values(recyclingData).reduce((sum, value) => {
+      return sum + (parseFloat(value) || 0);
+    }, 0);
+    
+    if (totalKg > 0) {
+      // Actualizar estadísticas localmente
+      const newTotalKg = stats.totalKg + totalKg;
+      const newPoints = stats.points + Math.floor(totalKg * 1); // 1 punto por kg
+      
+      const updatedStats = {
+        ...stats,
+        totalKg: Math.round(newTotalKg * 100) / 100, // Redondear a 2 decimales
+        points: newPoints
+      };
+      
+      // Llamar callback para actualizar el estado padre si está disponible
+      if (onUpdateStats) {
+        onUpdateStats(updatedStats);
+      }
+      
+      console.log('Reciclaje registrado:', recyclingData);
+      console.log('Total kg agregado:', totalKg.toFixed(2));
+      console.log('Nuevas estadísticas:', updatedStats);
+      
+      // Limpiar formulario
+      setRecyclingData({
+        papel: '',
+        carton: '',
+        plastico: '',
+        vidrio: '',
+        latas: '',
+        organico: ''
+      });
+    }
+  };
   const monthlyData = [
     { month: "Ene", kg: 12 },
     { month: "Feb", kg: 15 },
@@ -88,6 +158,53 @@ export default function UserProfile({ stats }: UserProfileProps) {
           <h2 className="text-2xl font-bold mb-2">Mi Perfil</h2>
           <p className="text-muted-foreground">Rastrea tu impacto ambiental</p>
         </div>
+
+        {/* Sección de registro de reciclaje diario */}
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Plus className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Registrar Reciclaje de Hoy</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Ingresa cuántos kilogramos de cada material reciclaste hoy
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {materials.map((material) => (
+              <div key={material.key} className="space-y-2">
+                <Label htmlFor={material.key} className="text-sm font-medium flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${material.color}`} />
+                  {material.label}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id={material.key}
+                    type="text"
+                    placeholder="0.00"
+                    value={recyclingData[material.key as keyof typeof recyclingData]}
+                    onChange={(e) => handleInputChange(material.key, e.target.value)}
+                    className="pr-8"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                    kg
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Total: {Object.values(recyclingData).reduce((sum, value) => {
+                return sum + (parseFloat(value) || 0);
+              }, 0).toFixed(2)} kg
+            </div>
+            <Button onClick={handleSubmit} disabled={Object.values(recyclingData).every(v => !v || parseFloat(v) === 0)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Registrar
+            </Button>
+          </div>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-6">

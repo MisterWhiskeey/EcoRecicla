@@ -147,9 +147,15 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
           </div>
           <div className="space-y-1.5">
             <div>
-              <p className="text-xs font-medium">Papel y Cartón:</p>
+              <p className="text-xs font-medium">Papel:</p>
               <p className="text-xs leading-tight text-muted-foreground">
-                Limpio y seco, sin grasas ni comida
+                Limpio y seco, sin grasas
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium">Cartón:</p>
+              <p className="text-xs leading-tight text-muted-foreground">
+                Doblado, sin cintas ni grapas
               </p>
             </div>
             <div>
@@ -165,9 +171,15 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium">Metal:</p>
+              <p className="text-xs font-medium">Latas:</p>
               <p className="text-xs leading-tight text-muted-foreground">
-                Latas limpias y aplastadas
+                Limpias y aplastadas
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium">Orgánico:</p>
+              <p className="text-xs leading-tight text-muted-foreground">
+                Restos vegetales, sin líquidos
               </p>
             </div>
           </div>

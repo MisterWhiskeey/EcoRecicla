@@ -13,6 +13,7 @@ import type { Container, UserStats } from "../../../server/simple-storage";
 export default function Home() {
   const [activeView, setActiveView] = useState<"map" | "profile">("map");
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
+  const [localStats, setLocalStats] = useState<UserStats | null>(null);
 
   // Ubicación fija del usuario (en Buenos Aires)
   const userLocation = { lat: -34.603722, lng: -58.381592 };
@@ -41,6 +42,13 @@ export default function Home() {
   const { data: stats, isLoading: statsLoading } = useQuery<UserStats>({
     queryKey: ["/api/stats"],
   });
+
+  // Usar stats locales si están disponibles, sino usar las del servidor
+  const currentStats = localStats || stats;
+
+  const handleUpdateStats = (newStats: UserStats) => {
+    setLocalStats(newStats);
+  };
 
   const handleContainerSelect = (container: Container) => {
     setSelectedContainer(container);
@@ -98,8 +106,11 @@ export default function Home() {
           />
         )}
 
-        {activeView === "profile" && stats && (
-          <UserProfile stats={stats} />
+        {activeView === "profile" && currentStats && (
+          <UserProfile 
+            stats={currentStats} 
+            onUpdateStats={handleUpdateStats}
+          />
         )}
       </main>
     </div>
