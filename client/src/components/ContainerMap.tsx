@@ -214,46 +214,6 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
         </Card>
       </div>
 
-      {selectedContainer && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-[400px]">
-          <Card className="p-4 space-y-3 bg-card/95 backdrop-blur-sm">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-semibold">{selectedContainer.name}</h3>
-                <p className="text-sm text-muted-foreground">{selectedContainer.address}</p>
-                {selectedContainer.distance !== undefined && (
-                  <p className="text-sm font-medium text-blue-600 mt-1">
-                    📍 {formatDistance(selectedContainer.distance)}
-                  </p>
-                )}
-              </div>
-              <Badge
-                className={`${getFillLevelColor(selectedContainer.fillLevel)} text-white`}
-                data-testid={`badge-status-${selectedContainer.id}`}
-              >
-                {getFillLevelText(selectedContainer.fillLevel)}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {selectedContainer.materials.map((material) => (
-                <Badge key={material} variant="outline" data-testid={`badge-material-${material}`}>
-                  {material}
-                </Badge>
-              ))}
-            </div>
-            <Button
-              data-testid="button-close-details"
-              onClick={handleCloseDetails}
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              Cerrar
-            </Button>
-          </Card>
-        </div>
-      )}
-
       <div className="flex-1 relative">
         <MapContainer
           center={mapCenter}
@@ -270,13 +230,7 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             <Marker 
               position={[userLocation.lat, userLocation.lng]}
               icon={createUserIcon()}
-            >
-              <Popup>
-                <div className="text-center">
-                  <strong>Tu ubicación</strong>
-                </div>
-              </Popup>
-            </Marker>
+            />
           )}
 
           {filteredContainers.map((container) => (
