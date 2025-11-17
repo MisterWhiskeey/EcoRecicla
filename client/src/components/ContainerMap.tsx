@@ -1,16 +1,8 @@
 import { useState, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { MapPin, Navigation, Search, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
+import { MapPin, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { sortContainersByDistance, formatDistance } from "@/lib/geo-utils";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -41,18 +33,18 @@ const createCustomIcon = (fillLevel: number) => {
     className: 'custom-marker',
     html: `
       <div style="position: relative;">
-        <svg width="32" height="42" viewBox="0 0 32 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 0C7.163 0 0 7.163 0 16c0 11.625 14.5 25.5 15.25 26.125a1 1 0 001.5 0C17.5 41.5 32 27.625 32 16 32 7.163 24.837 0 16 0z" fill="${color}"/>
-          <circle cx="16" cy="16" r="6" fill="white"/>
+        <svg width="60" height="75" viewBox="0 0 60 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 0C13.431 0 0 13.431 0 30c0 22.5 27 42 28.5 43.5a1.5 1.5 0 003 0C33 72 60 52.5 60 30 60 13.431 46.569 0 30 0z" fill="${color}"/>
+          <circle cx="30" cy="30" r="18" fill="white"/>
         </svg>
-        <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); color: ${color}; font-weight: bold; font-size: 10px;">
+        <div style="position: absolute; top: 18px; left: 50%; transform: translateX(-50%); color: ${color}; font-weight: bold; font-size: 15px; text-align: center; width: 36px;">
           ${fillLevel}%
         </div>
       </div>
     `,
-    iconSize: [32, 42],
-    iconAnchor: [16, 42],
-    popupAnchor: [0, -42]
+    iconSize: [60, 75],
+    iconAnchor: [30, 75],
+    popupAnchor: [0, -75]
   });
 };
 
@@ -62,7 +54,7 @@ const createUserIcon = () => {
     html: `
       <div style="position: relative;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#3b82f6" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="10" fill="#3b82f6" stroke="white" stroke-width="1"/>
           <circle cx="12" cy="12" r="4" fill="white"/>
         </svg>
       </div>
@@ -79,7 +71,6 @@ function MapUpdater({ center }: { center: [number, number] }) {
 }
 
 export default function ContainerMap({ containers, onContainerSelect, userLocation, selectedContainer: externalSelectedContainer, onBackToMap }: ContainerMapProps) {
-  const [searchQuery, setSearchQuery] = useState("");
   const [internalSelectedContainer, setInternalSelectedContainer] = useState<Container | null>(null);
   
   const selectedContainer = externalSelectedContainer ?? internalSelectedContainer;
@@ -115,11 +106,6 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
     }
   };
 
-  const filteredContainers = sortedContainers.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const mapCenter: [number, number] = userLocation 
     ? [userLocation.lat, userLocation.lng]
     : [-34.603722, -58.381592];
@@ -127,53 +113,27 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
   return (
     <div className="relative h-full flex flex-col">
       <div className="absolute top-4 left-4 z-[1000] space-y-4">
-        <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              data-testid="input-search-container"
-              placeholder="Buscar contenedor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-card w-[280px]"
-            />
+        <Card className="bg-card/95 backdrop-blur-sm p-3 w-fit">
+          <div className="flex items-center gap-2 mb-3">
+            <Info className="h-5 w-5" />
+            <span className="text-base font-medium">Leyenda</span>
           </div>
-          <Button
-            data-testid="button-find-nearest"
-            size="icon"
-            variant="default"
-            onClick={() => {
-              if (filteredContainers.length > 0) {
-                setInternalSelectedContainer(filteredContainers[0]);
-                onContainerSelect(filteredContainers[0]);
-              }
-            }}
-          >
-            <Navigation className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <Card className="bg-card/95 backdrop-blur-sm p-2 w-fit">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Info className="h-4 w-4" />
-            <span className="text-sm font-medium">Leyenda</span>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-container-empty flex-shrink-0" />
-              <span className="text-xs leading-tight">Disponible</span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-container-empty flex-shrink-0" />
+              <span className="text-sm leading-tight">Disponible</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-container-medium flex-shrink-0" />
-              <span className="text-xs leading-tight">Medio</span>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-container-medium flex-shrink-0" />
+              <span className="text-sm leading-tight">Medio</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-container-full flex-shrink-0" />
-              <span className="text-xs leading-tight">Lleno</span>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-container-full flex-shrink-0" />
+              <span className="text-sm leading-tight">Lleno</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-blue-500 border border-white flex-shrink-0" />
-              <span className="text-xs leading-tight">Tu ubicación</span>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-blue-500 border border-white flex-shrink-0" />
+              <span className="text-sm leading-tight">Tu ubicación</span>
             </div>
           </div>
         </Card>
@@ -219,12 +179,14 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
           center={mapCenter}
           zoom={13}
           style={{ height: '100%', width: '100%' }}
-          zoomControl={true}
+          zoomControl={false}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          
+          <ZoomControl position="bottomleft" />
           
           {userLocation && (
             <Marker 
@@ -233,7 +195,7 @@ export default function ContainerMap({ containers, onContainerSelect, userLocati
             />
           )}
 
-          {filteredContainers.map((container) => (
+          {sortedContainers.map((container) => (
             <Marker
               key={container.id}
               position={[container.latitude, container.longitude]}

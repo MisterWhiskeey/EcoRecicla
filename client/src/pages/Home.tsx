@@ -4,13 +4,11 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import ContainerMap from "@/components/ContainerMap";
 import ContainerDetails from "@/components/ContainerDetails";
 import UserProfile from "@/components/UserProfile";
-import NotificationCenter from "@/components/NotificationCenter";
 import BottomNavigation from "@/components/BottomNavigation";
-import ThemeToggle from "@/components/ThemeToggle";
 import { Recycle } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { sortContainersByDistance } from "@/lib/geo-utils";
-import type { Container, Notification, UserStats } from "../../../server/simple-storage";
+import type { Container, UserStats } from "../../../server/simple-storage";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<"map" | "profile">("map");
@@ -44,54 +42,15 @@ export default function Home() {
     queryKey: ["/api/stats"],
   });
 
-  const { data: notifications = [], isLoading: notificationsLoading } = useQuery<Notification[]>({
-    queryKey: ["/api/notifications"],
-  });
-
-  const markAsReadMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return await apiRequest("PATCH", `/api/notifications/${id}/read`);
-    },
-    onMutate: async (id: string) => {
-      await queryClient.cancelQueries({ queryKey: ["/api/notifications"] });
-      const previousNotifications = queryClient.getQueryData<Notification[]>(["/api/notifications"]);
-      
-      queryClient.setQueryData<Notification[]>(["/api/notifications"], (old) => 
-        old?.map(n => n.id === id ? { ...n, read: 1 } : n) ?? []
-      );
-      
-      return { previousNotifications };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.previousNotifications) {
-        queryClient.setQueryData(["/api/notifications"], context.previousNotifications);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
-    },
-  });
-
   const handleContainerSelect = (container: Container) => {
     setSelectedContainer(container);
-  };
-
-  const handleNotificationClick = (notification: Notification) => {
-    const container = containersWithDistance.find(c => c.id === notification.containerId);
-    if (container) {
-      setSelectedContainer(container);
-    }
-  };
-
-  const handleMarkAsRead = (id: string) => {
-    markAsReadMutation.mutate(id);
   };
 
   const handleBackToMap = () => {
     setSelectedContainer(null);
   };
 
-  if (containersLoading || statsLoading || notificationsLoading) {
+  if (containersLoading || statsLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
@@ -124,13 +83,6 @@ export default function Home() {
             />
           </div>
           <div className="flex items-center gap-2 flex-1 justify-end">
-            <NotificationCenter
-              notifications={notifications}
-              containers={containersWithDistance}
-              onNotificationClick={handleNotificationClick}
-              onMarkAsRead={handleMarkAsRead}
-            />
-            <ThemeToggle />
           </div>
         </div>
       </header>
